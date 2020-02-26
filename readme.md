@@ -6,9 +6,11 @@
 
 | Запрос                            | Ответ                         |
 | -------------                     |-------------                |
-| GET localhost:3000/users          | вернёт JSON-объект из файла users.json; |
-| GET localhost:3000/cards          | вернёт JSON-объект из файла cards.json; |
-| GET localhost:3000/users/8340d0ec33270a25f2413b69|   вернёт JSON-объект пользователя с переданным после /users идентификатором|
+| GET localhost:3000/users          | вернёт всех пользователей из базы; |
+| POST localhost:3000/users          | создает пользователя;|
+| GET localhost:3000/users/8340d0ec33270a25f2413b69|   вернёт JSON-объект пользователя с переданным после /users идентификатором;|
+| GET localhost:3000/cards          | вернёт все карточки всех пользователей; |
+| POST localhost:3000/cards          | создаст карточку; |
 
 ###git  Установка:
 Для установки необходимо наличие Node.js и npm
