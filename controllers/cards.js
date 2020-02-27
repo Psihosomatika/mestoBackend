@@ -3,7 +3,7 @@ const Card = require('../models/card.js');
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(404).send({ message: err.message }));
+    .catch((err) => res.status(400).send({ message: err.message }));
 };
 
 module.exports.createCard = (req, res) => {
@@ -16,12 +16,9 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.message) {
-        res.status(404).send(`Нет карточки с таким id: ${req.params.cardId}`);
-        return;
-      }
       res.status(500).send({ message: err.message });
     });
 };
