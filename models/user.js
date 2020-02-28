@@ -17,7 +17,10 @@ const userSchema = new mongoose.Schema({
   avatar: {
     required: true,
     type: String,
-    match: validator.isURL,
+    validate: {
+      validator: (value) => validator.isURL(value),
+      massage: 'Это не ссылка',
+    },
   },
 });
 
