@@ -11,11 +11,11 @@ module.exports.createCard = (req, res) => {
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(400).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
     .then((card) => Card.remove(card))
     .then(() => res.send({ data: 'Карточка удалена' }))
@@ -31,7 +31,7 @@ module.exports.likeCard = (req, res) => {
     { new: true },
   )
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(404).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 module.exports.dislikeCard = (req, res) => {
@@ -41,5 +41,5 @@ module.exports.dislikeCard = (req, res) => {
     { new: true },
   )
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(404).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ message: err.message }));
 };
