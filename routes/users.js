@@ -1,17 +1,69 @@
-const routerUsers = require('express').Router();
+const router = require('express').Router();
+const path = require('path');
+const fs = require('fs');
 
-const {
-  getUsers,
-  getUserById,
-  createUser,
-  updateProfile,
-  updateAvatar,
-} = require('../controllers/users');
+const dataPath = path.join(__dirname, '..', 'data', 'users.json');
+const usersData = fs.promises.readFile(dataPath, { encoding: 'utf8' });
 
-routerUsers.get('/', getUsers);
-routerUsers.get('/:userId', getUserById);
-routerUsers.post('/', createUser);
-routerUsers.patch('/me', updateProfile);
-routerUsers.patch('/me/avatar', updateAvatar);
+router.get('/:id', (req, res) => {
+  const { id } = req.params;
+  usersData
+    .then((data) => {
+      const users = JSON.parse(data);
+      const user = users.find((item) => {
+        const { _id: itemId } = item;
+        return itemId === id;
+      });
+      if (user) {
+        res.send(user);
+      } else {
+        res.status(404).send({ message: 'Нет пользователя с таким id' });
+      }
+    })
+    .catch(() => res.status(500).send({ message: 'Не удалось получить данные пользователей' }));
+});
 
-module.exports = routerUsers;
+router.get('/', (req, res) => {
+  usersData
+    .then((data) => res.send(JSON.parse(data)))
+    .catch(() => res.status(500).send({ message: 'Не удалось получить данные пользователей' }));
+});
+
+module.exports = router;
+
+/*
+const router = require('express').Router();
+const path = require('path');
+const fs = require('fs');
+
+const dataPath = path.join(__dirname, '..', 'data', 'users.json');
+
+const fsPromises = fs.promises;
+const usersData = fsPromises.readFile(dataPath, { encoding: 'utf8' });
+
+router.get('/users/:id', (req, res) => {
+  const { id } = req.params;
+  usersData
+    .then((data) => {
+      const users = JSON.parse(data);
+      const user = users.find((item) => {
+        const { _id: itemId } = item;
+        return itemId === id;
+      });
+      if (user) {
+        res.send(user);
+      } else {
+        res.status(404).send({ message: 'Нет пользователя с таким id' });
+      }
+    })
+    .catch(() => res.status(500).send({ message: 'Не удалось получить данные пользователей' }));
+});
+
+router.get('/users', (req, res) => {
+  usersData
+    .then((data) => res.send(JSON.parse(data)))
+    .catch(() => res.status(500).send({ message: 'Не удалось получить данные пользователей' }));
+});
+
+module.exports = router;
+*/
