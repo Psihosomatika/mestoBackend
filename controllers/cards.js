@@ -16,7 +16,10 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId)
-    .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
+    .orFail(() => {
+      const error = new Error(`Нет карточки с таким id: ${req.params.cardId}`);
+      error.statusCode = 404;
+    })
     // eslint-disable-next-line consistent-return
     .then((card) => {
       if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
@@ -26,7 +29,7 @@ module.exports.deleteCard = (req, res) => {
     })
     .then(() => res.send({ data: 'Карточка удалена' }))
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      res.status(err.statusCode || 500).send({ message: err.message });
     });
 };
 
@@ -36,9 +39,14 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
+    .orFail(() => {
+      const error = new Error(`Нет карточки с таким id: ${req.params.cardId}`);
+      error.statusCode = 404;
+    })
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      res.status(err.statusCode || 500).send({ message: err.message });
+    });
 };
 
 module.exports.dislikeCard = (req, res) => {
@@ -47,7 +55,12 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
+    .orFail(() => {
+      const error = new Error(`Нет карточки с таким id: ${req.params.cardId}`);
+      error.statusCode = 404;
+    })
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      res.status(err.statusCode || 500).send({ message: err.message });
+    });
 };

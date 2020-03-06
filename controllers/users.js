@@ -10,10 +10,13 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .orFail(() => res.status(404).send({ message: `Нет пользователя с таким id: ${req.params.userId}` }))
+    .orFail(() => {
+      const error = new Error(`Нет пользователя с таким id: ${req.params.userId}`);
+      error.statusCode = 404;
+    })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      res.status(err.statusCode || 500).send({ message: err.message });
     });
 };
 
