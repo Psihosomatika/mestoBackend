@@ -20,7 +20,7 @@ module.exports.deleteCard = (req, res) => {
     // eslint-disable-next-line consistent-return
     .then((card) => {
       if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
-        return Promise.reject(new Error('Не хватает прав'));
+        return res.status(403).send({ message: 'Не хватает прав' });
       }
       Card.remove(card);
     })
@@ -36,6 +36,7 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
     .then((like) => res.send({ data: like }))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
@@ -46,6 +47,7 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
     .then((like) => res.send({ data: like }))
     .catch((err) => res.status(500).send({ message: err.message }));
 };

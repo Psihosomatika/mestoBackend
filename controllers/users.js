@@ -11,8 +11,7 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
     .orFail(() => res.status(404).send({ message: `Нет пользователя с таким id: ${req.params.userId}` }))
-    .then((user) => User.remove(user))
-    .then(() => res.send({ data: 'пользователь удален' }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
@@ -31,7 +30,7 @@ module.exports.createUser = async (req, res) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send({ data: user.omitPrivate() }))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
