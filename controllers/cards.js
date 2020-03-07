@@ -1,4 +1,6 @@
 const Card = require('../models/card.js');
+const NotFoundError = require('../errors/notFoundError');
+const ForbiddenError = require('../errors/forbiddenError');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -16,11 +18,17 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId)
-    .orFail(() => res.status(404).send({ message: `Нет карточки с таким id: ${req.params.cardId}` }))
-    .then((card) => Card.remove(card))
+    .orFail(() => new NotFoundError(`Нет карточки с таким id: ${req.params.cardId}`))
+    // eslint-disable-next-line consistent-return
+    .then((card) => {
+      if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
+        return Promise.reject(new ForbiddenError('Не хватает прав'));
+      }
+      Card.remove(card);
+    })
     .then(() => res.send({ data: 'Карточка удалена' }))
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      res.status(err.statusCode || 500).send({ message: err.message });
     });
 };
 
@@ -30,8 +38,11 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => new NotFoundError(`Нет карточки с таким id: ${req.params.cardId}`))
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      res.status(err.statusCode || 500).send({ message: err.message });
+    });
 };
 
 module.exports.dislikeCard = (req, res) => {
@@ -40,6 +51,9 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => new NotFoundError(`Нет карточки с таким id: ${req.params.cardId}`))
     .then((like) => res.send({ data: like }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      res.status(err.statusCode || 500).send({ message: err.message });
+    });
 };
