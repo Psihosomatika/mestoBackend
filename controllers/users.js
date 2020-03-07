@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.js');
 const NotFoundError = require('../errors/notFoundError');
 const ConflictError = require('../errors/conflictError');
-const AutorizationError = require('../errors/autorizationError');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -51,7 +50,7 @@ module.exports.updateAvatar = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
-module.exports.login = (req, res, next) => {
+module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -67,7 +66,7 @@ module.exports.login = (req, res, next) => {
         sameSite: true,
       }).json({ token });
     })
-    .catch(() => {
-      next(new AutorizationError('Неправильные почта или пароль'));
+    .catch((err) => {
+      res.status(err.statusCode || 500).send({ message: err.message });
     });
 };

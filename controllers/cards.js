@@ -1,5 +1,4 @@
 const Card = require('../models/card.js');
-const BadRequestError = require('../errors/badRequestError');
 const NotFoundError = require('../errors/notFoundError');
 const ForbiddenError = require('../errors/forbiddenError');
 
@@ -9,12 +8,12 @@ module.exports.getCards = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
-module.exports.createCard = (req, res, next) => {
+module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((card) => res.send({ data: card }))
-    .catch(() => next(new BadRequestError('Данные не прошли валидацию')));
+    .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 module.exports.deleteCard = (req, res) => {
