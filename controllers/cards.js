@@ -1,4 +1,7 @@
 const Card = require('../models/card.js');
+const BadRequestError = require('../errors/badRequestError');
+const NotFoundError = require('../errors/notFoundError');
+const ForbiddenError = require('../errors/forbiddenError');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -6,24 +9,21 @@ module.exports.getCards = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(() => next(new BadRequestError('Данные не прошли валидацию')));
 };
 
 module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId)
-    .orFail(() => {
-      const error = new Error(`Нет карточки с таким id: ${req.params.cardId}`);
-      error.statusCode = 404;
-    })
+    .orFail(() => new NotFoundError(`Нет карточки с таким id: ${req.params.cardId}`))
     // eslint-disable-next-line consistent-return
     .then((card) => {
       if (JSON.stringify(card.owner) !== JSON.stringify(req.user._id)) {
-        return res.status(403).send({ message: 'Не хватает прав' });
+        return Promise.reject(new ForbiddenError('Не хватает прав'));
       }
       Card.remove(card);
     })
@@ -39,10 +39,7 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => {
-      const error = new Error(`Нет карточки с таким id: ${req.params.cardId}`);
-      error.statusCode = 404;
-    })
+    .orFail(() => new NotFoundError(`Нет карточки с таким id: ${req.params.cardId}`))
     .then((like) => res.send({ data: like }))
     .catch((err) => {
       res.status(err.statusCode || 500).send({ message: err.message });
@@ -55,10 +52,7 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(() => {
-      const error = new Error(`Нет карточки с таким id: ${req.params.cardId}`);
-      error.statusCode = 404;
-    })
+    .orFail(() => new NotFoundError(`Нет карточки с таким id: ${req.params.cardId}`))
     .then((like) => res.send({ data: like }))
     .catch((err) => {
       res.status(err.statusCode || 500).send({ message: err.message });

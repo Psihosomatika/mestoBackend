@@ -1,6 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
 const User = require('../models/user.js');
+const NotFoundError = require('../errors/notFoundError');
+const ConflictError = require('../errors/conflictError');
+const AutorizationError = require('../errors/autorizationError');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -10,10 +14,7 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .orFail(() => {
-      const error = new Error(`Нет пользователя с таким id: ${req.params.userId}`);
-      error.statusCode = 404;
-    })
+    .orFail(() => new NotFoundError(`Нет пользователя с таким id: ${req.params.userId}`))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       res.status(err.statusCode || 500).send({ message: err.message });
@@ -26,8 +27,7 @@ module.exports.createUser = async (req, res) => {
   } = req.body;
   const userTrace = await User.findOne({ email });
   if (userTrace) {
-    res.status(409).send({ message: 'Такая почта уже зарегистрирована' });
-    return;
+    throw new ConflictError('Такая почта уже зарегистрирована');
   }
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
@@ -51,7 +51,7 @@ module.exports.updateAvatar = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -67,7 +67,7 @@ module.exports.login = (req, res) => {
         sameSite: true,
       }).json({ token });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
+    .catch(() => {
+      next(new AutorizationError('Неправильные почта или пароль'));
     });
 };
