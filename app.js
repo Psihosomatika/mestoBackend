@@ -1,10 +1,11 @@
-require('dotenv').config(); // +
-const express = require('express'); // +
-const mongoose = require('mongoose'); // +
-const bodyParser = require('body-parser'); // +
-const cookieParser = require('cookie-parser'); // +
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
+const cors = require('cors');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
@@ -26,6 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 
+app.use(cors())
 app.use('/', require('./routes/index'));
 
 app.use(errorLogger);
