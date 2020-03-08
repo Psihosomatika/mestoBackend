@@ -20,7 +20,12 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 const { PORT = 3000 } = process.env;
 
-app.use(cors());
+const corsOptions = {
+  origin: '*',
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
 app.use(helmet());
 app.use(cookieParser());
 app.use(bodyParser.json());
