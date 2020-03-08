@@ -20,6 +20,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 const { PORT = 3000 } = process.env;
 
+app.use(cors());
 app.use(helmet());
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -27,7 +28,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 
-app.use(cors())
 app.use('/', require('./routes/index'));
 
 app.use(errorLogger);
